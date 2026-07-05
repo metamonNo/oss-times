@@ -1,0 +1,44 @@
+{
+  "_readme": "手動掲載枠: ここにJSONを追記すると自作サービスや推しサービスをポータルに掲載できます（src省略時は own=📌 Pick 扱い）",
+  "items": [
+    {
+      "n": "航海勤務記録",
+      "f": "funeapps-log",
+      "h": "https://log.funeapps.com/",
+      "u": "https://log.funeapps.com/",
+      "o": "funejin",
+      "d": "現役内航船員が開発した船員向け勤務時間記録PWA。船員法基準（1日14時間・週72時間）で自動集計、オフライン動作、SHA-256改ざん検知、写真・GPS記録対応。データは端末内のみ保存。",
+      "t": ["maritime", "time-tracking", "pwa", "offline"],
+      "l": "PWA",
+      "s": 0,
+      "c": "2025-01-01T00:00:00Z",
+      "uc": ["🏢 業務・バックオフィス", "📅 予定・予約・時間管理"]
+    },
+    {
+      "n": "フネアンキ（海技士暗記）",
+      "f": "funeanki",
+      "h": "https://3n.funeanki.funeapps.com/trial/",
+      "u": "https://3n.funeanki.funeapps.com/trial/",
+      "o": "funejin",
+      "d": "3級海技士（航海・運用・法規）の国家試験対策 暗記学習アプリ。理解度フラグ・苦手フィルター・メモ・マーカー・学習履歴のエクスポート対応。体験版は頻出15問、全259問版あり。",
+      "t": ["maritime", "learning", "flashcard", "anki"],
+      "l": "PWA",
+      "s": 0,
+      "c": "2025-06-01T00:00:00Z",
+      "uc": ["📚 学習・教育"]
+    },
+    {
+      "n": "乗船履歴計算ツール（sea-time-calc）",
+      "f": "sea-time-calc",
+      "h": "https://funejin.com/sea-time-calc/",
+      "u": "https://funejin.com/sea-time-calc/",
+      "o": "funejin",
+      "d": "海技士試験の受験資格に必要な乗船履歴（シータイム）を計算できるWebツール。",
+      "t": ["maritime", "calculator"],
+      "l": "Web",
+      "s": 0,
+      "c": "2025-01-01T00:00:00Z",
+      "uc": ["🏢 業務・バックオフィス", "📚 学習・教育"]
+    }
+  ]
+}

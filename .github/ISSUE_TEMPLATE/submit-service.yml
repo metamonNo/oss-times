@@ -1,0 +1,41 @@
+name: 🚀 サービス掲載申請 / Submit a service
+description: あなたのWebサービスを OSS TIMES に掲載申請します（管理者が approved ラベルを付けると自動掲載）
+title: "[掲載申請] "
+labels: ["掲載申請"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: サービス名
+      placeholder: 例）WiFi爆速チェック
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: URL
+      description: https:// から始まる公開URL
+      placeholder: https://example.com
+    validations:
+      required: true
+  - type: textarea
+    id: desc
+    attributes:
+      label: サービス概要
+      description: 何ができるサービスか（日本語・英語どちらでも）
+    validations:
+      required: true
+  - type: input
+    id: tags
+    attributes:
+      label: タグ
+      description: カンマ区切り（例：wifi, network, tool）
+  - type: checkboxes
+    id: policy
+    attributes:
+      label: 掲載ポリシー
+      options:
+        - label: アダルト・違法・詐欺的なコンテンツを含みません
+          required: true
+        - label: 自分が公開・運営しているサービス、または掲載許可を得ています
+          required: true

@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSS TIMES — 世界の無料公開Webサービス・ポータル</title>
+<meta name="description" content="GitHub・GitLab・Codeberg・HF Spaces・Show HN・Reddit・Dev.to・Blueskyを4時間ごとに自動巡回。日本語/英語UI・AI検索・紹介記事つき。車輪の再発明、その前に。">
+<style>
+:root{
+  --bg:#0b0e13; --panel:#151a22; --panel2:#1c232e; --border:#262f3c;
+  --text:#e6edf3; --muted:#8b949e; --accent:#58a6ff;
+  --grad:linear-gradient(135deg,#7c3aed,#06b6d4);
+  --new:linear-gradient(135deg,#f43f5e,#f97316);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI",system-ui,sans-serif;line-height:1.6}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit}
+header{position:sticky;top:0;z-index:20;background:rgba(11,14,19,.93);backdrop-filter:blur(8px);border-bottom:1px solid var(--border)}
+.hwrap{max-width:1500px;margin:0 auto;padding:12px 20px}
+.brand{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{font-size:1.45rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;white-space:nowrap}
+.tagline{color:var(--muted);font-size:.8rem}
+.hbtn{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:.82rem}
+#langbtn{margin-left:auto}
+#fltbtn{display:none}
+.statusbar{color:var(--muted);font-size:.74rem;margin-top:3px}
+.statusbar .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#3fb950;margin-right:5px;vertical-align:1px}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.controls input[type=search],.controls select{background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:.88rem;outline:none}
+.controls input[type=search]{flex:1;min-width:180px}
+.controls input:focus,.controls select:focus{border-color:var(--accent)}
+#aibtn{background:var(--grad);border:0;color:#fff;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:.86rem}
+#aibtn:hover{opacity:.9}
+.rescount{color:var(--muted);font-size:.8rem}
+.chk{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);cursor:pointer;user-select:none;white-space:nowrap}
+.layout{max-width:1500px;margin:0 auto;display:flex;align-items:flex-start;gap:18px;padding:14px 20px 60px}
+aside{width:232px;flex-shrink:0;position:sticky;top:122px;max-height:calc(100vh - 134px);overflow-y:auto;scrollbar-width:thin;padding-bottom:20px}
+.fgroup{margin-bottom:16px}
+.fhead{background:var(--panel2);border:1px solid var(--border);color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.05em;padding:3px 10px;border-radius:7px;margin-bottom:6px}
+.fitem{display:flex;width:100%;background:none;border:0;color:var(--text);font-size:.82rem;padding:3px 10px;border-radius:6px;cursor:pointer;text-align:left;gap:6px;align-items:baseline}
+.fitem:hover{background:var(--panel)}
+.fitem.on{background:#1f6feb33;color:#79b8ff;font-weight:700}
+.fitem .c{color:var(--muted);font-size:.72rem;margin-left:auto}
+.fmore{background:none;border:0;color:var(--accent);font-size:.74rem;cursor:pointer;padding:2px 10px}
+main{flex:1;min-width:0}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--border);margin-bottom:10px}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{padding:7px 13px;border:0;background:none;color:var(--muted);font-size:.88rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--text);border-image:var(--grad) 1;border-bottom:2px solid}
+.tab .cnt{font-size:.7rem;color:var(--muted);margin-left:4px}
+#activebar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#1f6feb26;color:#79b8ff;border:1px solid #1f6feb55;font-size:.76rem;padding:3px 10px;border-radius:99px;cursor:pointer}
+.chip:hover{background:#1f6feb44}
+.chip.ai{background:#7c3aed33;color:#c4b5fd;border-color:#7c3aed66}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:transform .15s,border-color .15s}
+.card:hover{transform:translateY(-3px);border-color:#3d444d}
+.thumb{position:relative;display:block;aspect-ratio:2/1;background:var(--panel2);overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;position:relative}
+.thumb .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3.2rem;font-weight:800;color:#ffffff22;background:linear-gradient(135deg,#1f2937,#111827)}
+.badge-new{position:absolute;top:10px;left:10px;background:var(--new);color:#fff;font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:99px;z-index:2}
+.badge-genre{position:absolute;top:10px;right:10px;background:rgba(11,14,19,.78);border:1px solid #ffffff2b;color:#fff;font-size:.66rem;font-weight:600;padding:3px 9px;border-radius:99px;backdrop-filter:blur(4px);z-index:2}
+.badge-src{position:absolute;bottom:8px;left:10px;font-size:.64rem;font-weight:700;padding:2px 8px;border-radius:99px;background:rgba(11,14,19,.8);border:1px solid #ffffff22;z-index:2}
+.body{padding:13px 15px 10px;display:flex;flex-direction:column;gap:7px;flex:1}
+.titlerow{display:flex;align-items:center;gap:8px}
+.titlerow img{width:20px;height:20px;border-radius:5px;flex-shrink:0}
+.titlerow .name{font-weight:700;font-size:.96rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.titlerow .name:hover{color:var(--accent)}
+.titlerow .owner{color:var(--muted);font-weight:400}
+.stars{margin-left:auto;flex-shrink:0;font-size:.8rem;color:#e3b341;font-weight:700;white-space:nowrap}
+.desc{color:#b8c2cc;font-size:.84rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.trbadge{display:inline-block;background:#23863633;color:#57d364;font-size:.62rem;font-weight:700;padding:0 6px;border-radius:5px;margin-right:5px;vertical-align:1px}
+.aireason{background:#7c3aed1f;border-left:3px solid #7c3aed;color:#c4b5fd;font-size:.78rem;padding:5px 9px;border-radius:0 7px 7px 0}
+.topics{display:flex;flex-wrap:wrap;gap:5px}
+.tp{background:#1f6feb26;color:#79b8ff;font-size:.68rem;padding:1px 8px;border-radius:99px}
+.meta{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:.72rem;margin-top:auto;padding-top:4px}
+.meta .lang::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--lc,#8b949e);margin-right:5px}
+.meta .vel{color:#3fb950;font-weight:600}
+.actions{display:flex;gap:8px;padding:0 15px 13px}
+.btn{flex:1;text-align:center;font-size:.8rem;font-weight:600;padding:7px 0;border-radius:8px;border:1px solid var(--border);transition:background .15s}
+.btn:hover{background:var(--panel2)}
+.btn.site{background:var(--grad);border:0;color:#fff}
+.btn.site:hover{opacity:.88}
+.favbtn{flex:0 0 46px;cursor:pointer;background:var(--panel);color:var(--muted)}
+.favbtn.on{color:#f43f5e;border-color:#f43f5e88}
+.dirstats{display:flex;gap:26px;flex-wrap:wrap;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 22px;margin-bottom:22px}
+.dirstats b{font-size:1.4rem;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dirstats span{display:block;color:var(--muted);font-size:.72rem}
+.dsec{margin-bottom:28px}
+.dcols{columns:5 200px;column-gap:26px}
+.dhead{background:var(--panel2);border:1px solid var(--border);color:var(--muted);font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:7px;margin-bottom:8px;break-inside:avoid}
+.dcol{break-inside:avoid;margin-bottom:18px}
+.fbtn{display:flex;width:100%;background:none;border:0;color:var(--text);font-size:.84rem;padding:2px 4px;cursor:pointer;text-align:left;gap:8px;align-items:baseline;border-radius:5px}
+.fbtn:hover{color:var(--accent)}
+.fbtn .c{color:var(--muted);font-size:.72rem}
+.posts{max-width:830px}
+.post{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:16px}
+.post h2{font-size:1.05rem;margin:4px 0 10px}
+.post p{color:#b8c2cc;font-size:.88rem;margin-bottom:8px}
+.pdate{color:var(--muted);font-size:.72rem}
+.plinks{display:flex;gap:8px;margin-top:12px;max-width:360px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:80px 16px}
+.modal.hidden{display:none}
+.mbox{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px;max-width:560px;width:100%}
+.mbox h3{margin-bottom:10px;font-size:1rem}
+.mbox textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:10px;font-size:.9rem;font-family:inherit;min-height:74px;outline:none;resize:vertical}
+.mbox textarea:focus{border-color:var(--accent)}
+.mrow{display:flex;gap:8px;margin-top:10px}
+.mrow button{padding:8px 18px;border-radius:8px;border:1px solid var(--border);background:var(--panel2);color:var(--text);cursor:pointer;font-size:.86rem}
+.mrow button.primary{background:var(--grad);border:0;color:#fff;font-weight:700}
+.mbox details{margin-top:14px;color:var(--muted);font-size:.8rem}
+.mbox details input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:6px 10px;width:60%;margin:8px 6px 0 0}
+.mbox details button{padding:6px 12px;border-radius:7px;border:1px solid var(--border);background:var(--panel2);color:var(--text);cursor:pointer}
+.hint{font-size:.72rem;margin-top:6px}
+.hint a{color:var(--accent)}
+.state{text-align:center;color:var(--muted);padding:70px 20px}
+.spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;margin:0 auto 16px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.retry{margin-top:14px;background:var(--panel);border:1px solid var(--border);color:var(--text);padding:8px 20px;border-radius:8px;cursor:pointer}
+footer{border-top:1px solid var(--border);color:var(--muted);font-size:.76rem;text-align:center;padding:24px 20px 40px}
+footer a{color:var(--accent)}
+@media(max-width:920px){
+  #fltbtn{display:block}
+  aside{position:fixed;left:0;top:0;bottom:0;z-index:40;background:var(--bg);border-right:1px solid var(--border);padding:20px 14px;transform:translateX(-100%);transition:transform .2s;max-height:none;width:262px}
+  aside.open{transform:none}
+  .grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header><div class="hwrap">
+  <div class="brand">
+    <span class="logo">OSS TIMES</span>
+    <span class="tagline" id="tagline"></span>
+    <button class="hbtn" id="langbtn">🌐 EN</button>
+    <a class="hbtn" id="submitbtn" style="display:none" target="_blank" rel="noopener"></a>
+    <button class="hbtn" id="fltbtn">☰ フィルタ</button>
+  </div>
+  <div class="statusbar" id="statusbar"><span class="dot"></span>…</div>
+  <div class="controls">
+    <input type="search" id="q" placeholder="">
+    <button id="aibtn"></button>
+    <select id="sort"></select>
+    <label class="chk"><input type="checkbox" id="jpfirst"><span id="jpfirstlbl"></span></label>
+    <span class="rescount" id="rescount"></span>
+  </div>
+</div></header>
+
+<div class="layout">
+  <aside id="sidebar"></aside>
+  <main>
+    <nav class="tabs" id="tabs"></nav>
+    <div id="activebar"></div>
+    <div id="content"><div class="state"><div class="spinner"></div><span id="loadingtxt">Loading…</span></div></div>
+  </main>
+</div>
+
+<div class="modal hidden" id="aimodal"><div class="mbox">
+  <h3 id="aititle"></h3>
+  <textarea id="aiq"></textarea>
+  <div class="mrow">
+    <button class="primary" id="airun"></button>
+    <button id="aiclose"></button>
+  </div>
+  <details>
+    <summary id="keysummary"></summary>
+    <input type="password" id="groqkey" placeholder="gsk_…">
+    <button id="savekey"></button>
+    <p class="hint" id="keyhint"></p>
+  </details>
+</div></div>
+
+<footer id="foot">Data: <a href="https://docs.github.com/rest/search" target="_blank" rel="noopener">GitHub</a> ・
+<a href="https://docs.gitlab.com/ee/api/" target="_blank" rel="noopener">GitLab</a> ・
+<a href="https://codeberg.org/api/swagger" target="_blank" rel="noopener">Codeberg</a> ・
+<a href="https://huggingface.co/docs/hub/api" target="_blank" rel="noopener">HF Spaces</a> ・
+<a href="https://hn.algolia.com/api" target="_blank" rel="noopener">Show HN</a> ・
+Reddit ・ <a href="https://developers.forem.com/api" target="_blank" rel="noopener">Dev.to</a> ・ Bluesky</footer>
+
+<script>
+"use strict";
+/* 掲載申請フォームのURL（デプロイ後、自分のリポジトリのIssueフォームURLに書き換え。空なら非表示）
+   例: https://github.com/<ID>/<repo>/issues/new?template=submit-service.yml */
+const SUBMIT_URL="https://github.com/metamonNo/oss-times/issues/new?template=submit-service.yml";
+/* ===== 多言語（ja/en 自動判定+トグル） ===== */
+let store=null; try{ store = typeof localStorage!=="undefined" ? localStorage : null; }catch(e){}
+let L = (store&&store.getItem("lang")) || (typeof navigator!=="undefined"&&String(navigator.language||"").toLowerCase().startsWith("ja")?"ja":"en");
+if(!["ja","en"].includes(L)) L="en";
+const STR = {
+  tagline:{ja:"世界の無料公開Webサービスを4時間ごとに巡回 — 車輪の再発明、その前に。",en:"Free web services from around the world, crawled every 4 hours — check before you reinvent the wheel."},
+  searchPh:{ja:"検索（日本語OK: 写真, 監視, kanban, RAG…）",en:"Search (photos, monitoring, kanban, RAG…)"},
+  aiBtn:{ja:"🤖 AI検索",en:"🤖 AI Search"},
+  filter:{ja:"☰ フィルタ",en:"☰ Filters"},
+  submit:{ja:"🚀 掲載申請",en:"🚀 Submit yours"},
+  more:{ja:n=>`もっと見る（残り${n}件）`,en:n=>`Show more (${n} left)`},
+  tabFavs:{ja:"♥ お気に入り",en:"♥ Favorites"},
+  devHead:{ja:"👩‍💻 開発者ピックアップ",en:"👩‍💻 Top builders"},
+  devMonth:{ja:"今月のリリース数",en:"Launches this month"},
+  devTotal:{ja:"総掲載数",en:"Total listings"},
+  jpFirst:{ja:"🇯🇵 日本発を優先",en:"🇯🇵 Japan first"},
+  sort:{ja:["🚀 急上昇（★/日）","⭐ スター数","🆕 公開が新しい","🕒 最近更新"],en:["🚀 Rising (★/day)","⭐ Stars","🆕 Newest","🕒 Recently updated"]},
+  tabAll:{ja:"📚 すべて",en:"📚 All"},tabPosts:{ja:"📰 紹介記事",en:"📰 Articles"},tabDir:{ja:"📂 カテゴリ一覧",en:"📂 All categories"},
+  results:{ja:"件",en:" results"},
+  noResults:{ja:"条件に合うサービスが見つかりませんでした。フィルタを解除するか、🤖AI検索をお試しください。",en:"No services match. Clear filters or try 🤖 AI Search."},
+  loading:{ja:"データを取得しています…",en:"Loading data…"},
+  aiSearching:{ja:"🤖 探しています…",en:"🤖 Searching…"},
+  aiTitle:{ja:"🤖 AI検索 — やりたいことを日本語でどうぞ",en:"🤖 AI Search — describe what you want to do"},
+  aiPh:{ja:"例：家族の写真を自宅サーバーで安全に共有したい\n例：会議の音声を文字起こししたい",en:"e.g. Share family photos safely on my own server\ne.g. Transcribe meeting audio for free"},
+  aiRun:{ja:"この中から探す",en:"Find services"},aiClose:{ja:"閉じる",en:"Close"},
+  keySummary:{ja:"⚙️ 精度アップ：無料のGroq APIキーを使う（任意）",en:"⚙️ Better results: use a free Groq API key (optional)"},
+  keyHint:{ja:'キー無しでもキーワードマッチングで動きます。キーを入れるとLLMが理由付きで提案。キーはこのブラウザにのみ保存。<a href="https://console.groq.com/keys" target="_blank" rel="noopener">無料取得</a>',en:'Works without a key (keyword matching). With a key, an LLM picks matches with reasons. Stored only in this browser. <a href="https://console.groq.com/keys" target="_blank" rel="noopener">Get one free</a>'},
+  save:{ja:"保存",en:"Save"},saved:{ja:"保存済み✓",en:"Saved ✓"},
+  visit:{ja:"🌐 サイトを見る",en:"🌐 Visit site"},
+  updated:{ja:"更新 ",en:"Updated "},
+  statAuto:{ja:"4時間ごとに自動巡回",en:"auto-crawled every 4h"},statLive:{ja:"ライブ取得モード",en:"live mode"},
+  statCrawl:{ja:"最終巡回",en:"last crawl"},statItems:{ja:"掲載",en:"Listing"},
+  clearAll:{ja:"すべてクリア",en:"Clear all"},
+  postsEmpty:{ja:"📰 紹介記事はまだありません。GitHub Pagesにデプロイすると巡回のたびに自動生成されます。",en:"📰 No articles yet. They are auto-generated on every crawl once deployed to GitHub Pages."},
+  postsNote:{ja:"",en:"🇯🇵 Articles are generated in Japanese"},
+  aiWritten:{ja:"🤖AI執筆",en:"🤖 AI-written"},
+  dirServices:{ja:"掲載サービス",en:"Services"},dirMixed:{ja:"混合カテゴリー",en:"Mixed categories"},
+  mixedHead:{ja:"# 混合カテゴリー",en:"# Mixed categories"},
+  allCats:{ja:"📂 すべてのカテゴリを見る →",en:"📂 Browse all categories →"},
+  connErr:{ja:"接続エラー",en:"Connection error"},retry:{ja:"再試行",en:"Retry"},
+  noDesc:{ja:"（説明なし）",en:"(no description)"},orig:{ja:"原文: ",en:"Original: "},
+  day:{ja:d=>`NEW・公開${d}日目`,en:d=>`NEW · day ${d}`},
+};
+const T = k => { const v=STR[k]; return v ? (typeof v[L]==="function"?v[L]:v[L]) : k; };
+
+/* ===== 定義（scripts/fetch-data.mjs と同一に保つこと） ===== */
+const daysAgoStr = d => new Date(Date.now() - d*864e5).toISOString().slice(0,10);
+const CATEGORIES = [
+  { id:"new", label:"新着リリース", queries:[[`created:>=${daysAgoStr(14)} stars:>=10`,3],[`created:>=${daysAgoStr(30)} stars:>=30`,2]] },
+  { id:"trending", label:"トレンド", queries:[[`created:>=${daysAgoStr(90)} stars:>=300`,2]] },
+  { id:"selfhosted", label:"セルフホスト", queries:[[`topic:self-hosted stars:>=800 pushed:>=${daysAgoStr(365)}`,1]] },
+  { id:"ai", label:"AI・LLM", queries:[[`topic:llm stars:>=1500 pushed:>=${daysAgoStr(180)}`,1],[`topic:ai-agents stars:>=800 pushed:>=${daysAgoStr(180)}`,1]] },
+  { id:"devtools", label:"開発ツール", queries:[[`topic:developer-tools stars:>=1000 pushed:>=${daysAgoStr(365)}`,1],[`topic:devops stars:>=2500 pushed:>=${daysAgoStr(365)}`,1]] },
+];
+const CAT_LABELS = {new:{ja:"🆕 新着リリース",en:"🆕 New"},trending:{ja:"🔥 トレンド",en:"🔥 Trending"},selfhosted:{ja:"🏠 セルフホスト",en:"🏠 Self-hosted"},ai:{ja:"🤖 AI・LLM",en:"🤖 AI & LLM"},devtools:{ja:"🛠️ 開発ツール",en:"🛠️ Dev Tools"}};
+const NAME_NOISE = /(^|[-_])awesome([-_]|$)|^awesome|roadmap|interview[-_]?(questions|university)?$|cheat[-_]?sheet|free[-_]programming|build[-_]your[-_]own|coding[-_]interview|system[-_]design[-_]primer|leetcode/i;
+const TOPIC_NOISE = new Set(["awesome","awesome-list","roadmap","interview","interview-questions","books","tutorial"]);
+const DESC_NOISE = /\b(awesome list|curated list|a list of|collection of (links|resources)|interview questions|study (plan|guide))\b/i;
+const ADULT = /\bnsfw\b|porn|hentai|xxx|18\+|not-for-all-audiences|erotic|onlyfans/i;
+const isNoise = (name,topics,desc) => NAME_NOISE.test(name||"") || (topics||[]).some(t=>TOPIC_NOISE.has(t)) || DESC_NOISE.test(desc||"") || ADULT.test([name,desc,...(topics||[])].join(" "));
+
+const SRC = { gh:{name:"GitHub",color:"#e6edf3"}, gl:{name:"GitLab",color:"#fc6d26"}, cb:{name:"Codeberg",color:"#4793cc"}, hf:{name:"🤗 Spaces",color:"#ffd21e"}, hn:{name:"Show HN",color:"#ff6600"}, rd:{name:"Reddit",color:"#ff4500"}, dv:{name:"Dev.to",color:"#a3b3ff"}, bs:{name:"Bluesky",color:"#0085ff"}, qi:{name:"Qiita",color:"#55c500"}, zn:{name:"Zenn",color:"#3ea8ff"}, own:{name:"📌 Pick",color:"#3fb950"} };
+
+const TLD_CC = { jp:"JP",de:"DE",fr:"FR",uk:"GB",in:"IN",br:"BR",kr:"KR",tw:"TW",es:"ES",it:"IT",nl:"NL",pl:"PL",ru:"RU",ca:"CA",au:"AU",ch:"CH",se:"SE",no:"NO",fi:"FI",dk:"DK",cz:"CZ",at:"AT",be:"BE",pt:"PT",gr:"GR",tr:"TR",il:"IL",sg:"SG",id:"ID",th:"TH",vn:"VN",my:"MY",ph:"PH",mx:"MX",ar:"AR",cl:"CL",nz:"NZ",ie:"IE",ua:"UA",hu:"HU",ro:"RO",bg:"BG",hr:"HR",rs:"RS",sk:"SK",si:"SI",cn:"CN",hk:"HK" };
+const tldCountry = u => { try { const t = new URL(u).hostname.split(".").pop().toLowerCase(); return TLD_CC[t] || null; } catch(e){ return null; } };
+const COUNTRY_NAMES = {JP:["日本","Japan"],US:["アメリカ","USA"],DE:["ドイツ","Germany"],FR:["フランス","France"],GB:["イギリス","UK"],IN:["インド","India"],CN:["中国","China"],CA:["カナダ","Canada"],AU:["オーストラリア","Australia"],BR:["ブラジル","Brazil"],NL:["オランダ","Netherlands"],ES:["スペイン","Spain"],IT:["イタリア","Italy"],PL:["ポーランド","Poland"],RU:["ロシア","Russia"],KR:["韓国","Korea"],TW:["台湾","Taiwan"],SG:["シンガポール","Singapore"],CH:["スイス","Switzerland"],SE:["スウェーデン","Sweden"],NO:["ノルウェー","Norway"],FI:["フィンランド","Finland"],DK:["デンマーク","Denmark"],AT:["オーストリア","Austria"],BE:["ベルギー","Belgium"],PT:["ポルトガル","Portugal"],TR:["トルコ","Turkey"],IL:["イスラエル","Israel"],UA:["ウクライナ","Ukraine"],CZ:["チェコ","Czechia"],IE:["アイルランド","Ireland"],MX:["メキシコ","Mexico"],AR:["アルゼンチン","Argentina"],VN:["ベトナム","Vietnam"],ID:["インドネシア","Indonesia"],TH:["タイ","Thailand"],PH:["フィリピン","Philippines"],NG:["ナイジェリア","Nigeria"],EG:["エジプト","Egypt"],ZA:["南アフリカ","South Africa"],KE:["ケニア","Kenya"],NZ:["ニュージーランド","New Zealand"],RO:["ルーマニア","Romania"],HU:["ハンガリー","Hungary"],GR:["ギリシャ","Greece"],PK:["パキスタン","Pakistan"],BD:["バングラデシュ","Bangladesh"],HK:["香港","Hong Kong"]};
+const flagOf = cc => cc&&/^[A-Z]{2}$/.test(cc) ? String.fromCodePoint(...[...cc].map(c=>0x1F1E6+c.charCodeAt(0)-65)) : "🌐";
+const countryName = cc => { const e=COUNTRY_NAMES[cc]; return e ? (L==="ja"?e[0]:e[1]) : cc; };
+
+const USECASES = [
+  ["🏥 介護・医療・健康", /\b(care|health|medical|clinic|hospital|patient|ehr|fhir|elder|nursing|fitness|workout|mental|medication)\b/],
+  ["🛒 EC・フリマ・オークション", /\b(e-?commerce|marketplace|auctions?|resale|resell(er)?|shop(s|ping)?|shopify|storefront|pos|ebay|mercari|flea-?market|second-?hand|selling)\b/],
+  ["🏠 家庭・スマートホーム", /\b(home-?assistant|home-?automation|smart-?home|household|family)\b|\biot\b/],
+  ["📶 ネットワーク・WiFi", /\b(network(ing)?|wi-?fi|speedtest|bandwidth|router|dns|ping|firewall|proxy|vpn)\b/],
+  ["💰 家計・会計・お金", /\b(finance|budget|accounting|money|expense|invoice|billing|tax|banking)\b/],
+  ["📚 学習・教育", /\b(learn(ing)?|education|study|flashcard|anki|quiz|language-?learning|school)\b/],
+  ["🍳 料理・レシピ", /\b(recipe|cooking|meal|grocery|kitchen|food)\b/],
+  ["📷 写真・動画・メディア", /\b(photo|image|video|media-?server|gallery|camera|streaming|movie|tv)\b/],
+  ["🎵 音楽・音声", /\b(music|audio|podcast|spotify|sound|speech|voice|tts)\b/],
+  ["✈️ 旅行・地図・移動", /\b(travel|trip|maps?|gps|geo|location|transit|flight|navigation)\b/],
+  ["📅 予定・予約・時間管理", /\b(calendar|booking|reservation|schedul\w*|appointment|time-?track\w*)\b/],
+  ["📝 メモ・文書・知識", /\b(notes?|wiki|documents?|markdown|pdf|knowledge|writing|journal|bookmark)\b/],
+  ["💬 チャット・コミュニティ", /\b(chat|messag\w*|forum|community|social|discord|slack|matrix|comments?)\b/],
+  ["🏢 業務・バックオフィス", /\b(crm|erp|hr\b|inventory|warehouse|payroll|helpdesk|tickets?|workflow|automation|no-?code|low-?code)\b/],
+  ["🎮 ゲーム・趣味", /\b(games?|gaming|manga|anime|books?|reading|collection|hobby)\b/],
+  ["🔐 セキュリティ・プライバシー", /\b(password|security|privacy|encrypt\w*|auth\w*|2fa|sso)\b/],
+  ["📊 データ・分析・可視化", /\b(analytics|dashboards?|visuali[sz]\w*|charts?|reports?|metrics|monitor\w*|observability)\b/],
+  ["🤖 AI活用", /\b(ai|llm|gpt|agents?|rag|chatbots?|diffusion|whisper|machine-?learning|deep-?learning|transformers?)\b/],
+  ["🛠 開発・技術", /\b(developer|devops|api|framework|kubernetes|docker|ci\/?cd|testing|git|terminal|database|sql)\b/],
+];
+function ucGet(it){
+  if(it._uc) return it._uc;
+  if(Array.isArray(it.uc)&&it.uc.length){ it._uc=it.uc; return it._uc; }
+  const hay=((it.t||[]).join(" ")+" "+(it.n||"")+" "+(it.d||"")).toLowerCase();
+  const out=[];
+  for(const [label,re] of USECASES){ if(re.test(hay)){ out.push(label); if(out.length>=3)break; } }
+  it._uc=out; return out;
+}
+
+const GENRES = [
+  ["password-manager","パスワード管理"],["home-automation","スマートホーム"],["media-server","メディアサーバ"],
+  ["photo","写真管理"],["photos","写真管理"],["gallery","写真管理"],["image-generation","画像生成AI"],
+  ["note-taking","ノート"],["notes","ノート"],["knowledge-base","ナレッジベース"],["wiki","Wiki"],
+  ["cms","CMS"],["blog","ブログ"],["rss","RSS"],["bookmarks","ブックマーク"],["url-shortener","短縮URL"],
+  ["file-sharing","ファイル共有"],["cloud-storage","ストレージ"],["backup","バックアップ"],
+  ["monitoring","監視"],["observability","監視"],["dashboard","ダッシュボード"],["analytics","分析"],
+  ["ai-agents","AIエージェント"],["agents","AIエージェント"],["rag","RAG"],["chatbot","チャットボット"],
+  ["llm","LLM"],["stable-diffusion","画像生成AI"],["text-to-speech","音声合成"],["speech-recognition","音声認識"],
+  ["whisper","音声認識"],["translation","翻訳"],["ocr","OCR"],["generative-ai","生成AI"],
+  ["workflow-automation","自動化"],["automation","自動化"],["workflow","ワークフロー"],["low-code","ローコード"],["no-code","ノーコード"],
+  ["project-management","プロジェクト管理"],["task-management","タスク管理"],["kanban","カンバン"],["calendar","カレンダー"],
+  ["crm","CRM"],["erp","ERP"],["ecommerce","EC"],["finance","ファイナンス"],["invoice","請求書"],
+  ["chat","チャット"],["messaging","メッセージング"],["email","メール"],["mail-server","メール"],["forum","フォーラム"],
+  ["social-network","SNS"],["video","動画"],["streaming","配信"],["music","音楽"],["podcast","ポッドキャスト"],
+  ["authentication","認証"],["security","セキュリティ"],["vpn","VPN"],["proxy","プロキシ"],["dns","DNS"],
+  ["kubernetes","Kubernetes"],["docker","Docker"],["ci","CI/CD"],["cicd","CI/CD"],["continuous-integration","CI/CD"],
+  ["devops","DevOps"],["database","データベース"],["postgresql","DB"],["sql","DB"],["search-engine","検索"],
+  ["testing","テスト"],["api","API"],["web-framework","フレームワーク"],["editor","エディタ"],["ide","IDE"],
+  ["terminal","ターミナル"],["markdown","Markdown"],["pdf","PDF"],["game","ゲーム"],["maps","地図"],
+  ["machine-learning","機械学習"],["deep-learning","深層学習"],["git","Git"],["ai","AI"],
+  ["developer-tools","開発ツール"],["self-hosted","セルフホスト"],["gradio","AIデモ"],["streamlit","AIデモ"],
+];
+const EN_MAPS = {
+  genre:{"パスワード管理":"Passwords","スマートホーム":"Smart Home","メディアサーバ":"Media Server","写真管理":"Photos","画像生成AI":"Image Gen","ノート":"Notes","ナレッジベース":"Knowledge","ブログ":"Blog","ブックマーク":"Bookmarks","短縮URL":"URL Shortener","ファイル共有":"File Sharing","ストレージ":"Storage","バックアップ":"Backup","監視":"Monitoring","ダッシュボード":"Dashboard","分析":"Analytics","AIエージェント":"AI Agents","チャットボット":"Chatbot","音声合成":"TTS","音声認識":"STT","翻訳":"Translation","生成AI":"GenAI","自動化":"Automation","ワークフロー":"Workflow","ローコード":"Low-code","ノーコード":"No-code","プロジェクト管理":"Projects","タスク管理":"Tasks","カンバン":"Kanban","カレンダー":"Calendar","EC":"E-commerce","ファイナンス":"Finance","請求書":"Invoicing","チャット":"Chat","メッセージング":"Messaging","メール":"Email","フォーラム":"Forum","SNS":"Social","動画":"Video","配信":"Streaming","音楽":"Music","ポッドキャスト":"Podcast","認証":"Auth","セキュリティ":"Security","プロキシ":"Proxy","データベース":"Database","検索":"Search","テスト":"Testing","フレームワーク":"Framework","エディタ":"Editor","ターミナル":"Terminal","ゲーム":"Games","地図":"Maps","機械学習":"ML","深層学習":"DL","開発ツール":"Dev Tools","セルフホスト":"Self-hosted","AIデモ":"AI Demo","その他":"Other","新着リリース":"New","トレンド":"Trending","AI・LLM":"AI & LLM"},
+  uc:{"🏥 介護・医療・健康":"🏥 Care & Health","🛒 EC・フリマ・オークション":"🛒 Commerce & Auctions","🏠 家庭・スマートホーム":"🏠 Home & Family","📶 ネットワーク・WiFi":"📶 Network & WiFi","💰 家計・会計・お金":"💰 Money & Finance","📚 学習・教育":"📚 Learning","🍳 料理・レシピ":"🍳 Cooking","📷 写真・動画・メディア":"📷 Photos & Media","🎵 音楽・音声":"🎵 Music & Audio","✈️ 旅行・地図・移動":"✈️ Travel & Maps","📅 予定・予約・時間管理":"📅 Scheduling","📝 メモ・文書・知識":"📝 Notes & Docs","💬 チャット・コミュニティ":"💬 Chat & Community","🏢 業務・バックオフィス":"🏢 Business Ops","🎮 ゲーム・趣味":"🎮 Games & Hobbies","🔐 セキュリティ・プライバシー":"🔐 Security & Privacy","📊 データ・分析・可視化":"📊 Data & Analytics","🤖 AI活用":"🤖 AI","🛠 開発・技術":"🛠 Dev & Tech"},
+  feat:{"🌐 公式サイト/デモあり":"🌐 Has site/demo","🐳 Docker対応":"🐳 Docker ready","🔌 API提供":"🔌 Has API","🇯🇵 日本語説明あり":"🇯🇵 JA description","🆕 今月公開":"🆕 Launched this month"},
+  scale:{"⭐ 10万以上":"⭐ 100k+","⭐ 1万以上":"⭐ 10k+","⭐ 1000以上":"⭐ 1k+","⭐ 1000未満":"⭐ under 1k"},
+  age:{"今月":"This month","3ヶ月以内":"Last 3 months","1年以内":"This year","1年以上前":"Older"},
+};
+const disp = (g,v) => L==="ja" ? v : (EN_MAPS[g]&&EN_MAPS[g][v]) || v;
+const FACET_HEADS = {co:{ja:"🌍 国",en:"🌍 Country"},uc:{ja:"🎯 用途",en:"🎯 Use case"},genre:{ja:"🧩 ジャンル",en:"🧩 Genre"},src:{ja:"🌍 提供元",en:"🌍 Source"},lang:{ja:"💻 開発言語",en:"💻 Language"},feat:{ja:"✨ 特徴",en:"✨ Features"},scale:{ja:"⭐ 人気規模",en:"⭐ Popularity"},age:{ja:"🕒 公開時期",en:"🕒 Launched"},lic:{ja:"📜 ライセンス",en:"📜 License"}};
+const LANG_COLORS = {JavaScript:"#f1e05a",TypeScript:"#3178c6",Python:"#3572A5",Go:"#00ADD8",Rust:"#dea584",Java:"#b07219","C++":"#f34b7d",C:"#555555","C#":"#178600",PHP:"#4F5D95",Ruby:"#701516",Swift:"#F05138",Kotlin:"#A97BFF",Dart:"#00B4AB",Vue:"#41b883",Svelte:"#ff3e00",HTML:"#e34c26",CSS:"#663399",Shell:"#89e051",Elixir:"#6e4a7e",Scala:"#c22d40",Zig:"#ec915c",Lua:"#000080",gradio:"#ffd21e",streamlit:"#ff4b4b",docker:"#2496ed",static:"#8b949e"};
+
+const DICT = {
+  "写真":"photo photos image gallery","画像":"image picture","動画":"video","音楽":"music audio","音声":"audio speech voice",
+  "文字起こし":"transcription transcribe whisper speech-to-text","字幕":"subtitle","翻訳":"translation translate","要約":"summary summarize",
+  "共有":"share sharing","保存":"storage save","バックアップ":"backup","同期":"sync","ファイル":"file files","クラウド":"cloud drive",
+  "自宅":"self-hosted home server","サーバー":"server self-hosted","セルフホスト":"self-hosted","家族":"family sharing private",
+  "メモ":"note notes","ノート":"note notes notion","日記":"journal diary","ナレッジ":"knowledge wiki","ブログ":"blog","サイト":"website site",
+  "チャット":"chat messaging","掲示板":"forum community","メール":"mail email","通知":"notification push",
+  "家計":"finance budget money","会計":"accounting invoice","請求":"invoice billing","予約":"booking reservation schedule",
+  "カレンダー":"calendar","タスク":"task todo","予定":"schedule calendar","プロジェクト":"project management","かんばん":"kanban","カンバン":"kanban",
+  "パスワード":"password vault","認証":"auth authentication sso","セキュリティ":"security","監視":"monitoring uptime observability",
+  "ログ":"log logging","分析":"analytics","統計":"statistics analytics","可視化":"visualization chart dashboard","ダッシュボード":"dashboard",
+  "検索":"search","データベース":"database","表計算":"spreadsheet","スプレッドシート":"spreadsheet","フォーム":"form survey","アンケート":"survey form",
+  "チャットボット":"chatbot assistant","ボット":"bot","エージェント":"agent agents","生成":"generation generative",
+  "画像生成":"image-generation stable-diffusion flux","音声合成":"text-to-speech tts","文章":"text writing","校正":"grammar proofreading",
+  "OCR":"ocr","PDF":"pdf","マークダウン":"markdown","エディタ":"editor","開発":"developer development","テスト":"testing",
+  "デプロイ":"deploy deployment","コンテナ":"docker container","自動化":"automation workflow","ワークフロー":"workflow n8n",
+  "スクレイピング":"scraping crawler","クローラー":"crawler scraping","API":"api","地図":"map maps gis","天気":"weather",
+  "ニュース":"news rss reader","RSS":"rss reader","ゲーム":"game","学習":"learning education","教育":"education learning",
+  "ストリーミング":"streaming media-server","映画":"movie media","テレビ":"tv media","レシピ":"recipe cooking","料理":"recipe cooking",
+  "健康":"health fitness","運動":"fitness workout","読書":"book reading","蔵書":"library books","在庫":"inventory","倉庫":"warehouse inventory",
+  "顧客":"crm customer","EC":"ecommerce shop","通販":"ecommerce shop store","ショップ":"shop ecommerce","求人":"job recruiting",
+  "介護":"care nursing elder health","医療":"medical health clinic","病院":"hospital clinic medical","施設":"facility care scheduling","グループホーム":"group home care facility nursing","シフト":"shift scheduling roster staff","管理":"management manager admin",
+  "オークション":"auction ebay resale","ヤフオク":"auction yahoo resale ebay","メルカリ":"mercari resale marketplace","フリマ":"marketplace resale mercari","出品":"selling listing auction","転売":"resale reseller",
+  "スマートホーム":"home-automation home-assistant iot","IoT":"iot","VPN":"vpn wireguard","プロキシ":"proxy","広告":"ad adblock","ブロック":"adblock blocker",
+  "短縮":"url-shortener","QR":"qrcode qr","図":"diagram drawing","作図":"diagram drawing excalidraw","ホワイトボード":"whiteboard",
+  "会議":"meeting conference video-conferencing","ビデオ会議":"video-conferencing meeting jitsi","配信":"streaming live",
+  "WiFi":"wifi network speedtest","ネットワーク":"network wifi router","診断":"diagnostics analyzer test",
+  "無料":"free open-source","代替":"alternative","置き換え":"alternative","文字":"text ocr","議事録":"meeting transcription notes"
+};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+let CHUNK = 120; // 1回に描画する件数（1000件でも軽い）
+const state = {
+  items:[], articles:[], tab:"new", q:"", sort:"velocity", shown:120, favs:new Set(), jpFirst:L==="ja",
+  facets:{uc:null,genre:null,src:null,lang:null,scale:null,age:null,feat:null,lic:null},
+  ai:null, mode:"", generatedAt:null,
+};
+try{ JSON.parse((store&&store.getItem("favs"))||"[]").forEach(k=>state.favs.add(k)); }catch(e){}
+const saveFavs = () => { try{ if(store) store.setItem("favs", JSON.stringify([...state.favs])); }catch(e){} };
+
+const fmtStars = n => L==="ja" ? (n>=1e4?(n/1e4).toFixed(1).replace(/\.0$/,"")+"万":n.toLocaleString()) : (n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,"")+"k":String(n));
+const daysSince = iso => Math.max(0,(Date.now()-new Date(iso||0).getTime())/864e5);
+function rel(iso){
+  const d=daysSince(iso);
+  if(L==="ja"){ if(d<1)return"今日"; if(d<30)return Math.floor(d)+"日前"; if(d<365)return Math.floor(d/30)+"ヶ月前"; return (d/365).toFixed(0)+"年前"; }
+  if(d<1)return"today"; if(d<30)return Math.floor(d)+"d ago"; if(d<365)return Math.floor(d/30)+"mo ago"; return (d/365).toFixed(0)+"y ago";
+}
+const velocity = it => it.s/Math.max(1,daysSince(it.c));
+function genreOf(it){
+  const set = new Set(it.t||[]);
+  for(const [k,v] of GENRES) if(set.has(k)) return v;
+  const c = CATEGORIES.find(c=>(it.cats||[]).includes(c.id));
+  return c ? c.label : "その他";
+}
+const scaleOf = s => s>=1e5?"⭐ 10万以上":s>=1e4?"⭐ 1万以上":s>=1e3?"⭐ 1000以上":"⭐ 1000未満";
+const ageOf = c => { const d=daysSince(c); return d<=31?"今月":d<=92?"3ヶ月以内":d<=365?"1年以内":"1年以上前"; };
+function featOf(it){
+  const f=[]; const tset=new Set(it.t||[]);
+  if(it.h) f.push("🌐 公式サイト/デモあり");
+  if(tset.has("docker")||tset.has("docker-compose")||it.l==="docker") f.push("🐳 Docker対応");
+  if(tset.has("api")||tset.has("rest-api")||tset.has("graphql")) f.push("🔌 API提供");
+  if(it.dj && it.dj!==it.d) f.push("🇯🇵 日本語説明あり");
+  if(daysSince(it.c)<31) f.push("🆕 今月公開");
+  return f;
+}
+const FACETS = [
+  {id:"uc", top:19, get:ucGet},
+  {id:"genre", top:16, get:it=>[genreOf(it)]},
+  {id:"src", top:9, get:it=>[SRC[it.src]?.name||it.src]},
+  {id:"co", top:15, get:it=>it.co?[it.co]:[]},
+  {id:"lang", top:12, get:it=>it.l?[it.l]:[]},
+  {id:"feat", top:8, get:featOf},
+  {id:"scale", top:6, get:it=>[scaleOf(it.s)]},
+  {id:"age", top:6, get:it=>[ageOf(it.c)]},
+  {id:"lic", top:8, get:it=>it.lic?[it.lic]:[]},
+];
+const dispFacet = (g,v) => g==="co" ? flagOf(v)+" "+countryName(v) : (g==="src"||g==="lang"||g==="lic" ? v : disp(g==="genre"?"genre":g,v));
+
+/* ===== データ読み込み ===== */
+async function boot(){
+  let ok=false;
+  if(location.protocol!=="file:"){
+    try{
+      const r = await fetch("data/data.json",{cache:"no-store"});
+      if(r.ok){ const d=await r.json();
+        if(d.items&&d.items.length&&!d.meta.seed){ state.items=d.items; state.generatedAt=d.meta.generatedAt; state.mode="auto"; ok=true; } }
+    }catch(e){}
+    try{ const ar=await fetch("data/articles.json",{cache:"no-store"}); if(ar.ok) state.articles=(await ar.json()).articles||[]; }catch(e){}
+  }
+  if(!ok){
+    try{ await liveFetch(); state.mode="live"; ok=true; }catch(e){ showError(e); return; }
+    try{ const cr=await fetch("data/custom.json",{cache:"no-store"}); if(cr.ok){ const cl=(await cr.json()).items||[];
+      for(const c of cl){ state.items.push({src:c.src||"own",f:c.f||c.n,n:c.n,o:c.o||"",a:c.a||"",u:c.u||c.h||"#",h:c.h||null,d:c.d||"",dj:c.dj||(/[぀-ヿ一-鿿]/.test(c.d||"")?c.d:null),e:c.e||null,s:c.s||0,fk:0,l:c.l||null,t:c.t||[],lic:c.lic||null,c:c.c||new Date().toISOString(),p:c.p||new Date().toISOString(),cats:c.cats||[],uc:c.uc}); } } }catch(e){}
+  }
+  buildAll();
+}
+
+async function liveFetch(){
+  const jobs=[];
+  CATEGORIES.forEach(c=>c.queries.forEach(([q])=>jobs.push(
+    fetch(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=30`,{headers:{Accept:"application/vnd.github+json"}})
+    .then(r=>r.ok?r.json():Promise.reject(new Error("gh "+r.status)))
+    .then(j=>({kind:"gh",cat:c.id,items:j.items||[]}))
+  )));
+  jobs.push(fetch("https://huggingface.co/api/spaces?sort=likes&direction=-1&limit=100&full=true").then(r=>r.json()).then(j=>({kind:"hf",items:j})));
+  jobs.push(fetch("https://gitlab.com/api/v4/projects?order_by=star_count&sort=desc&per_page=60&visibility=public").then(r=>r.json()).then(j=>({kind:"gl",items:j})));
+  jobs.push(fetch("https://codeberg.org/api/v1/repos/search?sort=stars&order=desc&limit=50").then(r=>r.json()).then(j=>({kind:"cb",items:j.data||[]})));
+  jobs.push(fetch(`https://hn.algolia.com/api/v1/search?tags=show_hn&numericFilters=points%3E%3D40,created_at_i%3E%3D${Math.floor(Date.now()/1e3)-30*86400}&hitsPerPage=60`).then(r=>r.json()).then(j=>({kind:"sns",items:(j.hits||[]).filter(h=>h.url&&(h.points||0)>=40&&!/github\.com/.test(h.url)).map(h=>{
+    const t=(h.title||"").replace(/^show hn:?\s*/i,"");const created=new Date((h.created_at_i||0)*1e3).toISOString();
+    let host="web";try{host=new URL(h.url).hostname.replace(/^www\./,"");}catch(e){}
+    return {src:"hn",f:"hn:"+h.objectID,n:t.slice(0,80),o:host,a:"",u:"https://news.ycombinator.com/item?id="+h.objectID,h:h.url,d:t,dj:null,e:null,s:h.points||0,fk:0,l:null,t:[],lic:null,c:created,p:created,cats:["new"]};
+  })})));
+  jobs.push(fetch("https://dev.to/api/articles?tag=showdev&top=7&per_page=40").then(r=>r.json()).then(arts=>({kind:"sns",items:(arts||[]).filter(a=>(a.positive_reactions_count||0)>=20).map(a=>(
+    {src:"dv",f:"dv:"+a.id,n:(a.title||"").slice(0,80),o:a.user?.username||"dev.to",a:a.user?.profile_image_90||"",u:a.url,h:a.url,d:a.description||a.title||"",dj:null,e:null,s:a.positive_reactions_count||0,fk:0,l:null,t:(a.tag_list||[]).slice(0,6),lic:null,c:a.published_at,p:a.published_at,cats:daysSince(a.published_at)<=30?["new"]:[]}
+  ))})));
+  jobs.push(fetch("https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=%23buildinpublic&sort=top&limit=100").then(r=>r.json()).then(j=>({kind:"sns",items:(j.posts||[]).filter(p=>p.embed?.external?.uri&&(p.likeCount||0)>=15&&!/github\.com/.test(p.embed.external.uri)).map(p=>{
+    const rkey=String(p.uri||"").split("/").pop();const created=p.record?.createdAt||p.indexedAt;const ext=p.embed.external;
+    return {src:"bs",f:"bs:"+rkey,n:(ext.title||p.record?.text||"").slice(0,80),o:p.author?.handle||"bsky",a:p.author?.avatar||"",u:`https://bsky.app/profile/${p.author?.handle}/post/${rkey}`,h:ext.uri,d:(ext.description||p.record?.text||"").slice(0,240),dj:null,e:null,s:p.likeCount||0,fk:0,l:null,t:[],lic:null,c:created,p:created,cats:daysSince(created)<=30?["new"]:[]};
+  })})));
+  const settled = await Promise.allSettled(jobs);
+  const map=new Map(); const seen=new Map(); let okCount=0;
+  const normUrl=u=>{try{const x=new URL(u);return (x.hostname.replace(/^www\./,"")+x.pathname).replace(/\/+$/,"").toLowerCase();}catch(e){return String(u);}};
+  const deriveCats=(topics,created)=>{
+    const s=new Set(topics||[]); const cats=[]; const age=daysSince(created);
+    if(age<=30)cats.push("new"); else if(age<=90)cats.push("trending");
+    if(s.has("self-hosted")||s.has("selfhosted"))cats.push("selfhosted");
+    if(["llm","ai","ai-agents","machine-learning","deep-learning","rag","chatbot","gpt"].some(t=>s.has(t)))cats.push("ai");
+    if(["developer-tools","devops","kubernetes","cli","ci","cicd","monitoring"].some(t=>s.has(t)))cats.push("devtools");
+    return cats;
+  };
+  for(const res of settled){
+    if(res.status!=="fulfilled")continue; okCount++;
+    const v=res.value;
+    if(v.kind==="gh"){
+      for(const r of v.items){
+        if(r.archived||r.fork||isNoise(r.name,r.topics,r.description))continue;
+        const key="gh/"+r.full_name;
+        const cur=map.get(key)||{src:"gh",f:r.full_name,n:r.name,o:r.owner?.login||"",a:r.owner?.avatar_url||"",u:r.html_url,
+          h:(r.homepage||"").trim()||null,d:r.description||"",dj:null,e:null,s:r.stargazers_count||0,fk:r.forks_count||0,
+          l:r.language||null,t:(r.topics||[]).slice(0,6),lic:r.license&&r.license.spdx_id!=="NOASSERTION"?r.license.spdx_id:null,
+          c:r.created_at,p:r.pushed_at,cats:[]};
+        if(!cur.cats.includes(v.cat))cur.cats.push(v.cat);
+        map.set(key,cur);
+      }
+    }else if(v.kind==="hf"){
+      for(const sp of v.items){
+        if((sp.likes||0)<100)continue;
+        const tags=(sp.tags||[]).filter(t=>!t.includes(":"));
+        const title=sp.cardData?.title||String(sp.id||"").split("/")[1]||"";
+        const desc=sp.cardData?.short_description||title;
+        if(isNoise(title,tags,desc))continue;
+        const url="https://huggingface.co/spaces/"+sp.id;
+        const created=sp.createdAt||sp.lastModified||new Date().toISOString();
+        map.set("hf/"+sp.id,{src:"hf",f:sp.id,n:title||sp.id.split("/")[1],o:sp.id.split("/")[0],a:"",u:url,h:url,d:desc,dj:null,
+          e:sp.cardData?.emoji||null,s:sp.likes||0,fk:0,l:sp.sdk||null,t:tags.slice(0,6),lic:null,c:created,p:sp.lastModified||created,
+          cats:["ai",...deriveCats(tags,created).filter(c=>c!=="ai")]});
+      }
+    }else if(v.kind==="gl"){
+      for(const p of v.items){
+        if((p.star_count||0)<300||isNoise(p.name,p.topics,p.description))continue;
+        map.set("gl/"+p.path_with_namespace,{src:"gl",f:p.path_with_namespace,n:p.name,o:(p.path_with_namespace||"").split("/")[0],
+          a:p.avatar_url||"",u:p.web_url,h:null,d:p.description||"",dj:null,e:null,s:p.star_count||0,fk:p.forks_count||0,l:null,
+          t:(p.topics||[]).slice(0,6),lic:null,c:p.created_at,p:p.last_activity_at,cats:deriveCats(p.topics,p.created_at)});
+      }
+    }else if(v.kind==="cb"){
+      for(const r of v.items){
+        if((r.stars_count||0)<50||r.archived||r.fork||isNoise(r.name,r.topics,r.description))continue;
+        map.set("cb/"+r.full_name,{src:"cb",f:r.full_name,n:r.name,o:r.owner?.login||"",a:r.owner?.avatar_url||"",u:r.html_url,
+          h:(r.website||"").trim()||null,d:r.description||"",dj:null,e:null,s:r.stars_count||0,fk:r.forks_count||0,l:r.language||null,
+          t:(r.topics||[]).slice(0,6),lic:null,c:r.created_at,p:r.updated_at,cats:deriveCats(r.topics,r.created_at)});
+      }
+    }else if(v.kind==="sns"){
+      for(const it of v.items){
+        if(isNoise(it.n,it.t,it.d))continue;
+        const nu=it.h?normUrl(it.h):it.f;
+        const prevKey=seen.get(nu);
+        if(prevKey){ const prev=map.get(prevKey); if(prev&&prev.s>=it.s)continue; map.delete(prevKey); }
+        seen.set(nu,"sns/"+it.f);
+        map.set("sns/"+it.f,it);
+      }
+    }
+  }
+  if(!okCount) throw new Error(L==="ja"?"各APIに接続できません（レート制限の可能性）。1分ほど待って再試行してください。":"Could not reach the APIs (possibly rate-limited). Wait a minute and retry.");
+  state.items=[...map.values()];
+  for(const it of state.items){ if(!it.co && /[぀-ヿ一-鿿]/.test((it.n||"")+(it.d||""))) it.co="JP"; if(!it.co&&it.h){ const cc=tldCountry(it.h); if(cc) it.co=cc; } }
+  state.generatedAt=new Date().toISOString();
+}
+
+/* ===== 集計 ===== */
+function countBy(get){
+  const m=new Map();
+  for(const it of state.items) for(const v of get(it)) if(v) m.set(v,(m.get(v)||0)+1);
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+let MIXED=[];
+function computeMixed(){
+  const m=new Map();
+  for(const it of state.items){
+    const g=genreOf(it); if(!g||g==="その他")continue;
+    const push=(k,g2,v2)=>{ const cur=m.get(k)||{v:g,g2,v2,c:0}; cur.c++; m.set(k,cur); };
+    if(it.l) push(g+"×l:"+it.l,"lang",it.l);
+    push(g+"×s:"+it.src,"src",SRC[it.src]?.name||it.src);
+    const u=ucGet(it)[0]; if(u) push(g+"×u:"+u,"uc",u);
+    if(it.co) push(g+"×c:"+it.co,"co",it.co);
+  }
+  MIXED=[...m.entries()].filter(([,v])=>v.c>=3).sort((a,b)=>b[1].c-a[1].c).slice(0,110).map(([,v])=>v);
+}
+
+/* ===== UI構築 ===== */
+function updateTexts(){
+  document.documentElement.lang=L;
+  $("#tagline").textContent=T("tagline");
+  $("#q").placeholder=T("searchPh");
+  $("#aibtn").textContent=T("aiBtn");
+  $("#fltbtn").textContent=T("filter");
+  $("#langbtn").textContent=L==="ja"?"🌐 EN":"🌐 日本語";
+  const so=["velocity","stars","created","pushed"];
+  $("#sort").innerHTML=STR.sort[L].map((t,i)=>`<option value="${so[i]}"${state.sort===so[i]?" selected":""}>${t}</option>`).join("");
+  $("#loadingtxt").textContent=T("loading");
+  $("#aititle").textContent=T("aiTitle");
+  $("#aiq").placeholder=T("aiPh");
+  $("#airun").textContent=T("aiRun");
+  $("#aiclose").textContent=T("aiClose");
+  $("#keysummary").textContent=T("keySummary");
+  $("#keyhint").innerHTML=T("keyHint");
+  $("#savekey").textContent=T("save");
+  $("#jpfirstlbl").textContent=T("jpFirst");
+  $("#jpfirst").checked=state.jpFirst;
+  if(SUBMIT_URL){const sb=$("#submitbtn"); sb.textContent=T("submit"); sb.href=SUBMIT_URL; sb.style.display="";}
+}
+function buildAll(){ computeMixed(); updateTexts(); renderTabs(); renderSidebar(); renderStatus(); render(); }
+
+function renderTabs(){
+  const cnt = id => id==="all" ? state.items.length : id==="favs" ? state.favs.size : state.items.filter(i=>(i.cats||[]).includes(id)).length;
+  const defs=[...CATEGORIES.map(c=>({id:c.id,label:CAT_LABELS[c.id][L]})),{id:"all",label:T("tabAll")},{id:"favs",label:T("tabFavs")},{id:"posts",label:T("tabPosts")},{id:"dir",label:T("tabDir")}];
+  $("#tabs").innerHTML = defs.map(d=>`<button class="tab${d.id===state.tab?" on":""}" data-tab="${d.id}">${d.label}${d.id!=="dir"&&d.id!=="posts"?`<span class="cnt">${cnt(d.id)}</span>`:d.id==="posts"?`<span class="cnt">${state.articles.length}</span>`:""}</button>`).join("");
+}
+
+function renderSidebar(){
+  $("#sidebar").innerHTML = FACETS.map(fc=>{
+    const rows=countBy(fc.get).slice(0,fc.top);
+    if(!rows.length)return"";
+    return `<div class="fgroup"><div class="fhead">${FACET_HEADS[fc.id][L]}</div>`+
+      rows.map(([v,c])=>`<button class="fitem${state.facets[fc.id]===v?" on":""}" data-g="${fc.id}" data-v="${esc(v)}">${esc(dispFacet(fc.id,v))}<span class="c">${c}</span></button>`).join("")+
+      `</div>`;
+  }).join("")+`<div class="fgroup"><button class="fmore" data-alldir="1">${T("allCats")}</button></div>`;
+}
+
+function renderStatus(){
+  const bySrc={}; state.items.forEach(i=>bySrc[i.src]=(bySrc[i.src]||0)+1);
+  const srcTxt=Object.entries(bySrc).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${SRC[k]?.name||k} ${v}`).join(" ・ ");
+  const dt=state.generatedAt?new Date(state.generatedAt).toLocaleString(L==="ja"?"ja-JP":"en-US",{timeZone:L==="ja"?"Asia/Tokyo":undefined,month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"-";
+  $("#statusbar").innerHTML=`<span class="dot"></span>${T("statItems")} <b>${state.items.length}</b>（${srcTxt}）・ ${T("statCrawl")} ${dt}${L==="ja"?" (JST)":""} ・ `+(state.mode==="auto"?T("statAuto"):T("statLive"));
+}
+
+function renderActive(){
+  const chips=[];
+  if(state.ai) chips.push(`<span class="chip ai" data-clear="ai">🤖 ${esc(state.ai.q.slice(0,30))}${state.ai.q.length>30?"…":""} ✕</span>`);
+  for(const [g,v] of Object.entries(state.facets)) if(v) chips.push(`<span class="chip" data-clear="${g}">${esc(dispFacet(g,v))} ✕</span>`);
+  if(state.q) chips.push(`<span class="chip" data-clear="q">🔍 ${esc(state.q)} ✕</span>`);
+  $("#activebar").innerHTML=chips.length?chips.join("")+`<span class="chip" data-clear="all">${T("clearAll")}</span>`:"";
+}
+
+function matches(it){
+  for(const fc of FACETS){ const v=state.facets[fc.id]; if(v && !fc.get(it).includes(v)) return false; }
+  if(state.tab==="favs"){ if(!state.favs.has(it.src+"/"+it.f)) return false; }
+  else if(state.tab!=="all"&&state.tab!=="dir"&&state.tab!=="posts" && !(it.cats||[]).includes(state.tab)) return false;
+  const q=state.q.toLowerCase();
+  if(q && !((it.f+" "+it.n+" "+(it.o||"")+" "+it.d+" "+(it.dj||"")+" "+(it.t||[]).join(" ")).toLowerCase().includes(q))) return false;
+  return true;
+}
+
+function render(){
+  renderActive();
+  const el=$("#content");
+  if(state.tab==="dir"){ el.innerHTML=renderDirectory(); $("#rescount").textContent=""; return; }
+  if(state.tab==="posts"){ el.innerHTML=renderPosts(); $("#rescount").textContent=""; return; }
+  let list;
+  if(state.ai){ list=state.ai.list.filter(x=>matches(x.it)); }
+  else{
+    list=state.items.filter(matches).map(it=>({it}));
+    const sorters={velocity:(a,b)=>velocity(b.it)-velocity(a.it),stars:(a,b)=>b.it.s-a.it.s,created:(a,b)=>new Date(b.it.c)-new Date(a.it.c),pushed:(a,b)=>new Date(b.it.p)-new Date(a.it.p)};
+    list.sort(sorters[state.sort]);
+    if(state.jpFirst){ const jp=list.filter(x=>x.it.co==="JP"), rest=list.filter(x=>x.it.co!=="JP"); list=[...jp,...rest]; }
+  }
+  $("#rescount").textContent=list.length+T("results");
+  const slice=list.slice(0,state.shown);
+  const moreN=list.length-slice.length;
+  el.innerHTML=list.length
+    ? `<div class="grid">${slice.map(x=>card(x.it,x.reason)).join("")}</div>`+(moreN>0?`<div class="state" style="padding:24px"><button class="retry" id="morebtn">${T("more")(moreN)}</button></div>`:"")
+    : `<div class="state">${T("noResults")}</div>`;
+}
+
+function thumbInner(it){
+  const isNew=daysSince(it.c)<31;
+  const genre=genreOf(it);
+  const src=SRC[it.src]||{name:it.src,color:"#888"};
+  const og=it.src==="gh"?`<img loading="lazy" src="https://opengraph.githubassets.com/1/${esc(it.f)}" alt="" onerror="this.remove()">`:"";
+  const phTxt=it.e?esc(it.e):esc((it.n||"?")[0].toUpperCase());
+  return `<div class="ph">${phTxt}</div>${og}
+    ${isNew?`<span class="badge-new">${esc(STR.day[L](Math.max(1,Math.floor(daysSince(it.c)))))}</span>`:""}
+    ${genre&&genre!=="その他"?`<span class="badge-genre">${esc(disp("genre",genre))}</span>`:""}
+    <span class="badge-src" style="color:${src.color}">${esc(src.name)}</span>`;
+}
+
+function card(it,reason){
+  const key=it.src+"/"+it.f;
+  const fav=state.favs.has(key);
+  const vel=velocity(it);
+  const lc=LANG_COLORS[it.l]||"#8b949e";
+  const translated=it.dj&&it.d&&it.dj!==it.d;
+  const descText=L==="ja"?(it.dj||it.d||""):(it.d||it.dj||"");
+  const showTr=L==="ja"&&translated;
+  return `<article class="card">
+  <a class="thumb" href="${esc(it.u)}" target="_blank" rel="noopener">${thumbInner(it)}</a>
+  <div class="body">
+    <div class="titlerow">
+      ${it.a?`<img loading="lazy" src="${esc(it.a)}" alt="" onerror="this.remove()">`:""}
+      <a class="name" href="${esc(it.u)}" target="_blank" rel="noopener">${it.o&&it.o!==it.n?`<span class="owner">${esc(it.o)}/</span>`:""}${esc(it.n)}</a>
+      <span class="stars">★ ${fmtStars(it.s)}</span>
+    </div>
+    ${reason?`<div class="aireason">🤖 ${esc(reason)}</div>`:""}
+    <p class="desc" ${showTr?`title="${esc(T("orig")+it.d)}"`:""}>${showTr?'<span class="trbadge">訳</span>':""}${esc(descText)||T("noDesc")}</p>
+    <div class="topics">${(it.t||[]).slice(0,5).map(t=>`<span class="tp">${esc(t)}</span>`).join("")}</div>
+    <div class="meta">
+      ${it.l?`<span class="lang" style="--lc:${lc}">${esc(it.l)}</span>`:""}
+      ${it.lic?`<span>${esc(it.lic)}</span>`:""}
+      ${it.co?`<span>${flagOf(it.co)} ${esc(countryName(it.co))}</span>`:""}
+      <span>${T("updated")}${rel(it.p)}</span>
+      ${vel>=1?`<span class="vel">+${vel>=10?Math.round(vel):vel.toFixed(1)}★/${L==="ja"?"日":"day"}</span>`:""}
+    </div>
+  </div>
+  <div class="actions">
+    ${it.h?`<a class="btn site" href="${esc(it.h)}" target="_blank" rel="noopener">${T("visit")}</a>`:""}
+    <a class="btn" href="${esc(it.u)}" target="_blank" rel="noopener">${esc(SRC[it.src]?.name||"Link")}</a>
+    <button class="btn favbtn${fav?" on":""}" data-fav="${esc(key)}" title="favorite">${fav?"♥":"♡"}</button>
+  </div>
+</article>`;
+}
+
+function renderPosts(){
+  if(!state.articles.length) return `<div class="state">${T("postsEmpty")}</div>`;
+  const byKey=new Map(state.items.map(i=>[i.src+"/"+i.f,i]));
+  const note=T("postsNote");
+  return (note?`<p style="color:var(--muted);font-size:.76rem;margin-bottom:12px">${note}</p>`:"")+
+    '<div class="posts">'+state.articles.map(a=>{
+    const it=byKey.get(a.key);
+    const d=new Date(a.date).toLocaleDateString(L==="ja"?"ja-JP":"en-US",{month:"numeric",day:"numeric"});
+    return `<article class="post"><div class="pdate">${esc(d)} ・ ${esc(SRC[a.src]?.name||a.src)}${a.llm?" ・ "+T("aiWritten"):""}</div><h2>${esc(a.title)}</h2>${(a.body||[]).map(p=>`<p>${esc(p)}</p>`).join("")}<div class="plinks">${it&&it.h?`<a class="btn site" href="${esc(it.h)}" target="_blank" rel="noopener">${T("visit")}</a>`:""}${it?`<a class="btn" href="${esc(it.u)}" target="_blank" rel="noopener">${esc(SRC[it.src]?.name||"Link")}</a>`:""}</div></article>`;
+  }).join("")+"</div>";
+}
+
+function renderDirectory(){
+  const bySrc={}; state.items.forEach(i=>bySrc[i.src]=(bySrc[i.src]||0)+1);
+  let html=`<div class="dirstats">
+    <div><b>${state.items.length}</b><span>${T("dirServices")}</span></div>
+    ${Object.entries(bySrc).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div><b>${v}</b><span>${esc(SRC[k]?.name||k)}</span></div>`).join("")}
+    <div><b>${MIXED.length}</b><span>${T("dirMixed")}</span></div>
+  </div>`;
+  for(const fc of FACETS){
+    const rows=countBy(fc.get);
+    if(!rows.length)continue;
+    html+=`<div class="dsec"><div class="dcol"><div class="dhead">${FACET_HEADS[fc.id][L]}</div></div><div class="dcols">`+
+      rows.map(([v,c])=>`<button class="fbtn" data-g="${fc.id}" data-v="${esc(v)}">${esc(dispFacet(fc.id,v))}<span class="c">${c}</span></button>`).join("")+
+      `</div></div>`;
+  }
+  if(MIXED.length){
+    html+=`<div class="dsec"><div class="dcol"><div class="dhead">${T("mixedHead")}</div></div><div class="dcols">`+
+      MIXED.map(v=>`<button class="fbtn" data-g="genre" data-v="${esc(v.v)}" data-g2="${v.g2}" data-v2="${esc(v.v2)}">${esc(disp("genre",v.v))} × ${esc(dispFacet(v.g2,v.v2))}<span class="c">${v.c}</span></button>`).join("")+
+      `</div></div>`;
+  }
+  const devs=new Map();
+  for(const it of state.items){
+    if(!it.o)continue;
+    const k=it.src+":"+it.o;
+    const d=devs.get(k)||{o:it.o,src:it.src,a:it.a,total:0,month:0,stars:0};
+    d.total++; d.stars+=it.s; if(daysSince(it.c)<=31)d.month++; if(!d.a&&it.a)d.a=it.a;
+    devs.set(k,d);
+  }
+  const monthTop=[...devs.values()].filter(d=>d.month>=1).sort((a,b)=>b.month-a.month||b.stars-a.stars).slice(0,10);
+  const totalTop=[...devs.values()].filter(d=>d.total>=2).sort((a,b)=>b.total-a.total||b.stars-a.stars).slice(0,10);
+  const devRow=(d,n,unit)=>`<button class="fbtn devbtn" data-dev="${esc(d.o)}">${flagOf(null)===""?"":""}${esc(d.o)} <span style="color:var(--muted);font-size:.7rem">(${esc(SRC[d.src]?.name||d.src)})</span><span class="c">${n}${unit}</span></button>`;
+  if(monthTop.length||totalTop.length){
+    html+=`<div class="dsec"><div class="dcol"><div class="dhead">${T("devHead")}</div></div><div class="dcols">`+
+      `<div class="dcol"><div class="dhead">${T("devMonth")}</div>${monthTop.map(d=>devRow(d,d.month,L==="ja"?"件":"")).join("")}</div>`+
+      `<div class="dcol"><div class="dhead">${T("devTotal")}</div>${totalTop.map(d=>devRow(d,d.total,L==="ja"?"件":"")).join("")}</div>`+
+      `</div></div>`;
+  }
+  return html;
+}
+
+/* ===== AI検索 ===== */
+function aiMatch(query){
+  const tokens=(query.match(/[A-Za-z0-9.+#-]{2,}|[ぁ-ヶー一-龯]{2,}/g)||[]);
+  const en=new Set();
+  for(const t of tokens){
+    if(/^[A-Za-z0-9.+#-]+$/.test(t)) en.add(t.toLowerCase());
+    for(const [jp,words] of Object.entries(DICT)) if(t.includes(jp)||jp.includes(t)) words.split(" ").forEach(w=>en.add(w));
+  }
+  const scored=[];
+  for(const it of state.items){
+    let sc=0;
+    const name=(it.f+" "+it.n).toLowerCase(), topics=(it.t||[]).join(" ").toLowerCase(), d=(it.d||"").toLowerCase(), dj=it.dj||"";
+    for(const t of tokens) if(/[ぁ-龯]/.test(t) && dj.includes(t)) sc+=3;
+    for(const w of en){
+      if(name.includes(w))sc+=3;
+      if(topics.includes(w))sc+=2.5;
+      if(d.includes(w))sc+=1.5;
+    }
+    if(sc>0) scored.push({it,sc});
+  }
+  scored.sort((a,b)=>b.sc-a.sc||b.it.s-a.it.s);
+  return scored.slice(0,40);
+}
+
+async function aiLLM(query,candidates,key){
+  const lines=candidates.slice(0,60).map(({it})=>`${it.f} :: ${genreOf(it)} :: ${(it.dj||it.d||"").slice(0,110)}`).join("\n");
+  const res=await fetch("https://api.groq.com/openai/v1/chat/completions",{
+    method:"POST",headers:{Authorization:"Bearer "+key,"Content-Type":"application/json"},
+    body:JSON.stringify({model:"llama-3.3-70b-versatile",temperature:0.2,max_tokens:900,response_format:{type:"json_object"},
+      messages:[
+        {role:"system",content:'あなたはOSS/無料Webサービスの案内人。ユーザーの要望に本当に合うサービスだけを候補一覧から最大10件選び、JSONのみ返す: {"results":[{"f":"<候補のID>","reason":"<なぜ合うか40字以内。要望と同じ言語で>"}]} 合うものが無ければ空配列。'},
+        {role:"user",content:`要望: ${query}\n\n候補一覧:\n${lines}`}
+      ]})});
+  if(!res.ok) throw new Error("Groq API "+res.status);
+  const j=await res.json();
+  const parsed=JSON.parse(j.choices[0].message.content);
+  const byF=new Map(state.items.map(i=>[i.f,i]));
+  return (parsed.results||[]).map(r=>({it:byF.get(r.f),reason:r.reason})).filter(x=>x.it);
+}
+
+async function runAI(){
+  const q=$("#aiq").value.trim();
+  if(!q)return;
+  $("#aimodal").classList.add("hidden");
+  $("#content").innerHTML=`<div class="state"><div class="spinner"></div>${T("aiSearching")}</div>`;
+  const cands=aiMatch(q);
+  let list=cands.map(({it})=>({it})), used="match";
+  const key=store&&store.getItem("groqKey");
+  if(key&&cands.length){
+    try{ const llm=await aiLLM(q,cands,key); if(llm.length){list=llm;used="llm";} }
+    catch(e){ console.warn("LLM fallback:",e); }
+  }
+  state.ai={q,list,used};
+  state.tab="all"; state.shown=CHUNK; renderTabs(); render();
+}
+
+function showError(e){
+  $("#content").innerHTML=`<div class="state">⚠️ ${esc(e.message||"error")}<br><button class="retry" onclick="location.reload()">${T("retry")}</button></div>`;
+  $("#statusbar").innerHTML=`<span class="dot" style="background:#f85149"></span>${T("connErr")}`;
+}
+
+/* ===== イベント ===== */
+function applyFacetClick(btn){
+  state.shown=CHUNK;
+  const g=btn.dataset.g,v=btn.dataset.v;
+  state.facets[g]=state.facets[g]===v?null:v;
+  if(btn.dataset.g2) state.facets[btn.dataset.g2]=btn.dataset.v2;
+  if(state.tab==="dir"||state.tab==="posts"){state.tab="all";}
+  renderTabs(); renderSidebar(); render();
+}
+$("#sidebar").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b)return;
+  if(b.dataset.alldir){state.tab="dir";renderTabs();render();$("#sidebar").classList.remove("open");return;}
+  applyFacetClick(b); $("#sidebar").classList.remove("open");
+});
+$("#tabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tab"); if(!b)return;
+  state.tab=b.dataset.tab; state.shown=CHUNK; renderTabs(); render();
+});
+$("#content").addEventListener("click",e=>{
+  if(e.target.id==="morebtn"){ state.shown+=CHUNK; render(); return; }
+  const fb=e.target.closest(".favbtn");
+  if(fb){ const k=fb.dataset.fav; state.favs.has(k)?state.favs.delete(k):state.favs.add(k); saveFavs(); renderTabs(); render(); return; }
+  const db=e.target.closest(".devbtn");
+  if(db){ state.q=db.dataset.dev; $("#q").value=state.q; state.tab="all"; state.shown=CHUNK; renderTabs(); render(); return; }
+  const b=e.target.closest(".fbtn"); if(!b)return;
+  applyFacetClick(b);
+});
+$("#activebar").addEventListener("click",e=>{
+  const c=e.target.closest(".chip"); if(!c)return;
+  const k=c.dataset.clear;
+  if(k==="all"){ state.ai=null; state.q=""; $("#q").value=""; for(const g in state.facets)state.facets[g]=null; }
+  else if(k==="ai") state.ai=null;
+  else if(k==="q"){ state.q=""; $("#q").value=""; }
+  else state.facets[k]=null;
+  state.shown=CHUNK; renderSidebar(); render();
+});
+$("#q").addEventListener("input",e=>{state.q=e.target.value;state.shown=CHUNK;render();});
+$("#sort").addEventListener("change",e=>{state.sort=e.target.value;state.shown=CHUNK;render();});
+$("#jpfirst").addEventListener("change",e=>{state.jpFirst=e.target.checked;state.shown=CHUNK;render();});
+$("#langbtn").addEventListener("click",()=>{ L=L==="ja"?"en":"ja"; if(store)store.setItem("lang",L); buildAll(); });
+$("#aibtn").addEventListener("click",()=>{ $("#aimodal").classList.remove("hidden"); if(store&&store.getItem("groqKey"))$("#groqkey").value=store.getItem("groqKey"); });
+$("#aiclose").addEventListener("click",()=>$("#aimodal").classList.add("hidden"));
+$("#aimodal").addEventListener("click",e=>{if(e.target.id==="aimodal")$("#aimodal").classList.add("hidden");});
+$("#airun").addEventListener("click",runAI);
+$("#aiq").addEventListener("keydown",e=>{if(e.key==="Enter"&&(e.metaKey||e.ctrlKey))runAI();});
+$("#savekey").addEventListener("click",()=>{ if(store){store.setItem("groqKey",$("#groqkey").value.trim());} $("#savekey").textContent=T("saved"); setTimeout(()=>$("#savekey").textContent=T("save"),1500); });
+$("#fltbtn").addEventListener("click",()=>$("#sidebar").classList.toggle("open"));
+
+updateTexts();
+boot();
+</script>
+</body>
+</html>
