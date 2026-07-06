@@ -1,0 +1,42 @@
+name: データ自動巡回
+
+on:
+  schedule:
+    - cron: "0 1,5,9,13,17,21 * * *"   # 4時間ごと（日本時間 2/6/10/14/18/22時）
+  workflow_dispatch:        # 手動実行ボタン
+  push:
+    branches: [main]
+    paths-ignore: ["data/**"]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: GitHubを巡回して data.json を生成
+        run: node scripts/fetch-data.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          SAFE_BROWSING_API_KEY: ${{ secrets.SAFE_BROWSING_API_KEY }}
+
+      - name: 変更があればコミット
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet && echo "変更なし" && exit 0
+          git commit -m "chore: データ更新 $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
