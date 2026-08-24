@@ -90,7 +90,7 @@ const ucOf = (name, topics, desc) => {
   return out;
 };
 
-const SRCJP = { gh: "GitHub", gl: "GitLab", cb: "Codeberg", hf: "HF Spaces", hn: "Show HN", rd: "Reddit", dv: "Dev.to", bs: "Bluesky", qi: "Qiita", zn: "Zenn", own: "手動掲載" };
+const SRCJP = { gh: "GitHub", gl: "GitLab", cb: "Codeberg", hf: "HF Spaces", hn: "Show HN", rd: "Reddit", dv: "Dev.to", bs: "Bluesky", ms: "Mastodon", lb: "Lobsters", qi: "Qiita", zn: "Zenn", own: "手動掲載" };
 const normUrl = (u) => { try { const x = new URL(u); return (x.hostname.replace(/^www\./, "") + x.pathname).replace(/\/+$/, "").toLowerCase(); } catch { return String(u); } };
 const isGithubUrl = (u) => { try { return /(^|\.)github\.com$/.test(new URL(u).hostname); } catch { return false; } };
 
@@ -268,6 +268,59 @@ async function fetchReddit(results) {
       });
     }
     if (!MOCK) await sleep(1500);
+  }
+}
+
+/* Mastodon: Xの代わり。個人開発の告知文化が同じで、公開APIが認証不要で使える */
+// 誰でも投稿できる場なので、紹介料目的・有料ストア・まとめサイトへの誘導は落とす
+const MS_BAD_URL = /[?&](ref|aff|affiliate)=|\/r\/[^/]+$|referral|steampowered\.com|\/\/store\.|diggita\.|bit\.ly|tinyurl|t\.co\/|linktr\.ee|patreon\.com|ko-fi\.com|buymeacoffee/i;
+const MS_BAD_TXT = /referral program|join here|giveaway|discount code|use my link|sign ?up (now|here)|クーポン|紹介コード/i;
+async function fetchMastodon(results) {
+  const tags = [["buildinpublic", 2], ["indiedev", 2], ["showdev", 1], ["indiehackers", 2], ["selfhosted", 2]];
+  for (const [tag, min] of tags) {
+    console.error(`[mastodon] #${tag}`);
+    let posts;
+    try { posts = MOCK ? (MOCK.mastodon || []) : await api(`https://mastodon.social/api/v1/timelines/tag/${tag}?limit=40`); }
+    catch (e) { console.error("  mastodon失敗: " + e.message); continue; }
+    for (const p of posts) {
+      const s = (p.favourites_count || 0) + (p.reblogs_count || 0);
+      if (s < min || p.sensitive) continue;
+      // 本文から告知先の外部リンクを拾う（ハッシュタグ・メンション・インスタンス内リンクは除く）
+      const hrefs = [...String(p.content || "").matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+      const ext = hrefs.find((u) => !/\/tags\/|\/@|mastodon\.social|mstdn\.|fosstodon|misskey/.test(u));
+      if (!ext || MS_BAD_URL.test(ext)) continue;           // リンクの無い日記・紹介料目的の誘導は載せない
+      const text = String(p.content || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      if (text.length < 12 || MS_BAD_TXT.test(text)) continue;
+      let host = "web"; try { host = new URL(ext).hostname.replace(/^www\./, ""); } catch {}
+      const created = p.created_at || new Date().toISOString();
+      putSns(results, "ms/" + p.id, {
+        src: "ms", f: "ms:" + p.id, n: text.slice(0, 80), o: p.account?.acct || host, a: p.account?.avatar_static || "",
+        u: p.url || p.uri, h: ext, d: text.slice(0, 240), dj: null, e: null,
+        s, fk: p.replies_count || 0, l: null, t: (p.tags || []).map((t) => t.name).slice(0, 6), lic: null,
+        c: created, p: created, cats: daysSince(created) <= 30 ? ["new"] : [],
+      });
+    }
+    if (!MOCK) await sleep(800);
+  }
+}
+
+/* Lobsters の show タグ＝Show HN 相当。自作ツールの発表だけが集まる */
+async function fetchLobsters(results) {
+  console.error("[lobsters] show");
+  let stories;
+  try { stories = MOCK ? (MOCK.lobsters || []) : await api("https://lobste.rs/t/show.json"); }
+  catch (e) { console.error("  lobsters失敗: " + e.message); return; }
+  for (const st of stories) {
+    if ((st.score || 0) < 5 || !st.url) continue;
+    const created = st.created_at || new Date().toISOString();
+    let host = "web"; try { host = new URL(st.url).hostname.replace(/^www\./, ""); } catch {}
+    putSns(results, "lb/" + st.short_id, {
+      src: "lb", f: "lb:" + st.short_id, n: (st.title || "").slice(0, 80), o: st.submitter_user?.username || host, a: "",
+      u: st.comments_url || st.short_id_url, h: st.url,
+      d: (st.description_plain || st.title || "").slice(0, 240), dj: null, e: null,
+      s: st.score || 0, fk: st.comment_count || 0, l: null, t: (st.tags || []).slice(0, 6), lic: null,
+      c: created, p: created, cats: daysSince(created) <= 30 ? ["new"] : [],
+    });
   }
 }
 
@@ -644,6 +697,8 @@ async function main() {
   await fetchReddit(results);
   await fetchDevto(results);
   await fetchBluesky(results);
+  await fetchMastodon(results);
+  await fetchLobsters(results);
   await fetchQiita(results);
   await fetchZenn(results);
   mergeCustom(results);
@@ -654,7 +709,7 @@ async function main() {
   // 全体を s の一列に並べて切ると星の多いGitHubだけが残り、日本語ソースと手動掲載が必ず全滅する。
   // 先にソースごとの最低枠を確保し、残りを全体順で埋める。
   if (items.length > 3000) {
-    const RESERVE = { own: 50, qi: 120, zn: 120, dv: 120, bs: 120, rd: 120, hn: 120 };
+    const RESERVE = { own: 50, qi: 120, zn: 120, dv: 120, bs: 120, rd: 120, hn: 120, ms: 150, lb: 100 };
     const keep = new Set();
     for (const [src, n] of Object.entries(RESERVE))
       for (const it of items.filter((i) => i.src === src).slice(0, n)) keep.add(it);
