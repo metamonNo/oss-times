@@ -411,7 +411,7 @@ async function boot(){
   if(!ok){
     try{ await liveFetch(); state.mode="live"; ok=true; }catch(e){ showError(e); return; }
     try{ const cr=await fetch("data/custom.json",{cache:"no-store"}); if(cr.ok){ const cl=(await cr.json()).items||[];
-      for(const c of cl){ state.items.push({src:c.src||"own",f:c.f||c.n,n:c.n,o:c.o||"",a:c.a||"",u:c.u||c.h||"#",h:c.h||null,d:c.d||"",dj:c.dj||(/[぀-ヿ一-鿿]/.test(c.d||"")?c.d:null),e:c.e||null,s:c.s||0,fk:0,l:c.l||null,t:c.t||[],lic:c.lic||null,c:c.c||new Date().toISOString(),p:c.p||new Date().toISOString(),cats:c.cats||[],uc:c.uc}); } } }catch(e){}
+      for(const c of cl){ state.items.push({src:c.src||"own",f:c.f||c.n,n:c.n,o:c.o||"",a:c.a||"",u:c.u||c.h||"#",h:c.h||null,d:c.d||"",dj:c.dj||(/[぀-ヿ]/.test(c.d||"")?c.d:null),e:c.e||null,s:c.s||0,fk:0,l:c.l||null,t:c.t||[],lic:c.lic||null,c:c.c||new Date().toISOString(),p:c.p||new Date().toISOString(),cats:c.cats||[],uc:c.uc}); } } }catch(e){}
   }
   buildAll();
 }

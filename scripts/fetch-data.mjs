@@ -24,7 +24,8 @@ const MOCK = mockIdx > -1 ? JSON.parse(readFileSync(process.argv[mockIdx + 1], "
 const daysAgo = (d) => new Date(Date.now() - d * 864e5).toISOString().slice(0, 10);
 const daysSince = (iso) => Math.max(0, (Date.now() - new Date(iso || 0).getTime()) / 864e5);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const JA = /[぀-ヿ一-鿿]/;
+// 日本語の判定は「かな」で行う。漢字(一-鿿)は中国語と共通なので、それだけでは日本語と断定できない
+const JA = /[぀-ヿ]/;
 
 /* ===== GitHubカテゴリ定義（index.html と同一に保つこと） ===== */
 const CATEGORIES = [
@@ -327,7 +328,7 @@ async function fetchGitHubJapan(results) {
     for (const r of raw) {
       if (r.archived || r.fork || isNoise(r.name, r.topics, r.description)) continue;
       const key = "gh/" + r.full_name;
-      if (results.has(key)) { results.get(key).co = results.get(key).co || "JP"; continue; }
+      if (results.has(key)) { const p = results.get(key); if (!p.co) { p.co = "JP"; p.cs = "q"; } continue; }
       const cats = deriveCats(r.topics, r.created_at);
       if ((Date.now() - new Date(r.created_at)) / 864e5 <= 30 && !cats.includes("new")) cats.unshift("new");
       results.set(key, {
@@ -336,7 +337,7 @@ async function fetchGitHubJapan(results) {
         s: r.stargazers_count || 0, fk: r.forks_count || 0, l: r.language || null,
         t: (r.topics || []).slice(0, 6),
         lic: r.license && r.license.spdx_id !== "NOASSERTION" ? r.license.spdx_id : null,
-        c: r.created_at, p: r.pushed_at, cats, co: "JP",
+        c: r.created_at, p: r.pushed_at, cats, co: "JP", cs: "q",
       });
     }
   }
@@ -345,7 +346,16 @@ async function fetchGitHubJapan(results) {
 async function fetchQiita(results) {
   console.error("[qiita] 個人開発タグ");
   let arts;
-  try { arts = MOCK ? (MOCK.qiita || []) : await api("https://qiita.com/api/v2/items?query=tag%3A%E5%80%8B%E4%BA%BA%E9%96%8B%E7%99%BA&per_page=50"); }
+  // 新着順に返るので、下の「いいね5以上・45日以内」を満たす記事まで届くよう2ページ分取る（50件では当日分しか入らず0件になる）
+  try {
+    if (MOCK) arts = MOCK.qiita || [];
+    else {
+      const q = "https://qiita.com/api/v2/items?query=tag%3A%E5%80%8B%E4%BA%BA%E9%96%8B%E7%99%BA&per_page=100&page=";
+      arts = await api(q + "1");
+      await sleep(400);
+      try { arts = arts.concat(await api(q + "2")); } catch {}
+    }
+  }
   catch (e) { console.error("  qiita失敗: " + e.message); return; }
   for (const a of arts) {
     if ((a.likes_count || 0) < 5 || daysSince(a.created_at) > 45) continue;
@@ -357,7 +367,7 @@ async function fetchQiita(results) {
       s: a.likes_count || 0, fk: a.comments_count || 0, l: null,
       t: (a.tags || []).map((t) => t.name).slice(0, 6), lic: null,
       c: a.created_at, p: a.updated_at || a.created_at,
-      cats: daysSince(a.created_at) <= 30 ? ["new"] : [], co: "JP",
+      cats: daysSince(a.created_at) <= 30 ? ["new"] : [], co: "JP", cs: "src",
     });
   }
 }
@@ -365,7 +375,8 @@ async function fetchQiita(results) {
 async function fetchZenn(results) {
   console.error("[zenn] 個人開発トピック");
   let arts;
-  try { arts = MOCK ? (MOCK.zenn || []) : (await api("https://zenn.dev/api/articles?topicname=%E5%80%8B%E4%BA%BA%E9%96%8B%E7%99%BA&order=latest&count=48")).articles || []; }
+  // order=latest だと投稿直後（いいね0）ばかりが返り、下の「いいね10以上」で全滅する。daily は反応の付いた記事が返る
+  try { arts = MOCK ? (MOCK.zenn || []) : (await api("https://zenn.dev/api/articles?topicname=%E5%80%8B%E4%BA%BA%E9%96%8B%E7%99%BA&order=daily&count=100")).articles || []; }
   catch (e) { console.error("  zenn失敗: " + e.message); return; }
   for (const a of arts) {
     const created = a.published_at || a.body_updated_at;
@@ -375,7 +386,7 @@ async function fetchZenn(results) {
       src: "zn", f: "zn:" + a.id, n: (a.title || "").slice(0, 80), o: a.user?.username || "zenn", a: a.user?.avatar_small_url || "",
       u: url, h: url, d: a.title || "", dj: null, e: null,
       s: a.liked_count || 0, fk: a.comments_count || 0, l: null, t: ["個人開発"], lic: null,
-      c: created, p: created, cats: daysSince(created) <= 30 ? ["new"] : [], co: "JP",
+      c: created, p: created, cats: daysSince(created) <= 30 ? ["new"] : [], co: "JP", cs: "src",
     });
   }
 }
@@ -391,7 +402,7 @@ function mergeCustom(results) {
         u: c.u || c.h || "#", h: c.h || null, d: c.d || "", dj: c.dj || (JA.test(c.d || "") ? c.d : null), e: c.e || null,
         s: c.s || 0, fk: 0, l: c.l || null, t: c.t || [], lic: c.lic || null,
         c: c.c || new Date().toISOString(), p: c.p || new Date().toISOString(),
-        cats: c.cats || [], co: c.co || null, uc: c.uc || ucOf(c.n, c.t, (c.d || "") + " " + (c.dj || "")),
+        cats: c.cats || [], co: c.co || null, cs: c.co ? "own" : null, uc: c.uc || ucOf(c.n, c.t, (c.d || "") + " " + (c.dj || "")),
       };
       results.set("own/" + it.f, it);
     }
@@ -420,28 +431,33 @@ function locToCC(loc) { if (!loc) return null; for (const [re, cc] of LOC_CC) if
 async function resolveCountries(items) {
   const cache = new Map();
   if (existsSync(OUT)) {
-    try { for (const it of JSON.parse(readFileSync(OUT, "utf8")).items || []) if (it.co && it.o) cache.set(it.src + ":" + it.o, it.co); } catch {}
+    // owner照会で実際に確認できた国だけをキャッシュに載せる。説明文から推測した国を混ぜると、
+    // 推測が作者単位のキャッシュになり、同じ作者の英語リポジトリにまで伝播してしまう
+    try { for (const it of JSON.parse(readFileSync(OUT, "utf8")).items || []) if (it.co && it.cs === "loc" && it.o) cache.set(it.src + ":" + it.o, it.co); } catch {}
   }
   const headers = { Accept: "application/vnd.github+json", "User-Agent": "oss-times-portal" };
   if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
   let fetched = 0, resolved = 0;
   const asked = new Set();
   for (const it of items) {
-    if (!it.co && JA.test((it.n || "") + (it.d || ""))) it.co = "JP"; // 日本語の説明＝日本発とみなす
+    const txt = (it.n || "") + " " + (it.d || "");
+    // 判定根拠(cs)を持たない国は、漢字だけで日本と判定していた頃のものなので捨てて判定し直す
+    if (it.co && !it.cs) it.co = null;
+    if (!it.co && JA.test(txt)) { it.co = "JP"; it.cs = "ja"; } // かな入りの説明＝日本発とみなす
     if (it.co) { resolved++; continue; }
     const ck = it.src + ":" + it.o;
-    if (cache.has(ck)) { it.co = cache.get(ck); resolved++; continue; }
+    if (cache.has(ck)) { it.co = cache.get(ck); it.cs = "loc"; resolved++; continue; }
     if (it.src === "gh" && it.o && !MOCK && fetched < 400 && !asked.has(it.o)) {
       asked.add(it.o);
       try {
         const u = await api(`https://api.github.com/users/${encodeURIComponent(it.o)}`, headers);
         const cc = locToCC(u.location || "");
-        if (cc) { it.co = cc; cache.set(ck, cc); }
+        if (cc) { it.co = cc; it.cs = "loc"; cache.set(ck, cc); }
       } catch {}
       fetched++;
       await sleep(120);
     }
-    if (!it.co && it.h) { const cc = tldCountry(it.h); if (cc) it.co = cc; }
+    if (!it.co && it.h) { const cc = tldCountry(it.h); if (cc) { it.co = cc; it.cs = "tld"; } }
     if (it.co) resolved++;
   }
   console.error(`国判定: ${resolved}/${items.length}件（owner照会${fetched}件）`);
@@ -458,7 +474,7 @@ function mergePrev(results) {
     if (results.has(key)) {
       const cur = results.get(key);
       cur.lc = it.lc; cur.miss = 0;
-      if (!cur.co && it.co) cur.co = it.co;
+      if (!cur.co && it.co) { cur.co = it.co; cur.cs = it.cs; } // 判定根拠も一緒に引き継ぐ
       if (!cur.dj && it.dj && cur.d === it.d) cur.dj = it.dj;
       continue;
     }
@@ -634,7 +650,17 @@ async function main() {
   mergePrev(results);
 
   let items = [...results.values()].sort((a, b) => b.s - a.s);
-  if (items.length > 3000) items = items.slice(0, 3000); // アーカイブ上限
+  // アーカイブ上限。s は GitHub のstar・Qiitaのいいね・HNのポイントで桁がまるで違うので、
+  // 全体を s の一列に並べて切ると星の多いGitHubだけが残り、日本語ソースと手動掲載が必ず全滅する。
+  // 先にソースごとの最低枠を確保し、残りを全体順で埋める。
+  if (items.length > 3000) {
+    const RESERVE = { own: 50, qi: 120, zn: 120, dv: 120, bs: 120, rd: 120, hn: 120 };
+    const keep = new Set();
+    for (const [src, n] of Object.entries(RESERVE))
+      for (const it of items.filter((i) => i.src === src).slice(0, n)) keep.add(it);
+    const rest = new Set(items.filter((i) => !keep.has(i)).slice(0, Math.max(0, 3000 - keep.size)));
+    items = items.filter((i) => keep.has(i) || rest.has(i));
+  }
   for (const it of items) if (!it.uc) it.uc = ucOf(it.n, it.t, it.d);
   await resolveCountries(items);
   await translateAll(items);
